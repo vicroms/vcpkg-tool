@@ -160,4 +160,60 @@ namespace vcpkg
 
     bool is_git_commit_sha(StringView sv);
     size_t package_match_prefix(StringView name, StringView pattern);
+
+    struct VersionDbEntry
+    {
+        Version version;
+        VersionScheme scheme = VersionScheme::String;
+
+        // only one of these may be non-empty
+        std::string git_tree;
+        Path p;
+    };
+
+    // VersionDbType::Git => VersionDbEntry.git_tree is filled
+    // VersionDbType::Filesystem => VersionDbEntry.path is filled
+    enum class VersionDbType
+    {
+        Git,
+        Filesystem,
+    };
+
+    struct GitVersionDbDeserializer final : Json::IDeserializer<std::vector<VersionDbEntry>>
+    {
+        static constexpr StringLiteral VERSIONS = "versions";
+
+        virtual StringView type_name() const override { return "a versions database file"; }
+
+        virtual View<StringView> valid_fields() const override;
+
+        Optional<std::vector<VersionDbEntry>> visit_object(Json::Reader& r, const Json::Object& obj) override;
+
+        static GitVersionDbDeserializer instance;
+    };
+
+    struct VersionDbEntryDeserializer final : Json::IDeserializer<VersionDbEntry>
+    {
+        static constexpr StringLiteral GIT_TREE = "git-tree";
+        static constexpr StringLiteral PATH = "path";
+
+        StringView type_name() const override;
+        View<StringView> valid_fields() const override;
+        Optional<VersionDbEntry> visit_object(Json::Reader& r, const Json::Object& obj) override;
+        VersionDbEntryDeserializer(VersionDbType type, const Path& root) : type(type), registry_root(root) { }
+
+    private:
+        VersionDbType type;
+        Path registry_root;
+    };
+
+    struct VersionDbEntryArrayDeserializer final : Json::IDeserializer<std::vector<VersionDbEntry>>
+    {
+        virtual StringView type_name() const override;
+        virtual Optional<std::vector<VersionDbEntry>> visit_array(Json::Reader& r, const Json::Array& arr) override;
+        VersionDbEntryArrayDeserializer(VersionDbType type, const Path& root) : underlying{type, root} { }
+
+    private:
+        VersionDbEntryDeserializer underlying;
+    };
 }
