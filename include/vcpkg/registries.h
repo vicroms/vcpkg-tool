@@ -216,4 +216,6 @@ namespace vcpkg
     private:
         VersionDbEntryDeserializer underlying;
     };
+
+    ExpectedL<std::vector<VersionDbEntry>> parse_git_versions_file(StringView contents, StringView origin);
 }
