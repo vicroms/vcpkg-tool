@@ -125,7 +125,6 @@ namespace vcpkg
                                            "0000000011111111aaaaaaaabbbbbbbbccccccccddddddddeeeeeeeeffffffff";
 
     const constexpr std::array<StringMetricEntry, static_cast<size_t>(StringMetric::COUNT)> all_string_metrics{{
-        // registryUri:id:version,...
         {StringMetric::AcquiredArtifacts, "acquired_artifacts", plan_example},
         {StringMetric::ActivatedArtifacts, "activated_artifacts", plan_example},
         {StringMetric::CommandArgs, "command_args", "0000000011111111aaaaaaaabbbbbbbbccccccccddddddddeeeeeeeeffffffff"},
@@ -133,6 +132,12 @@ namespace vcpkg
         {StringMetric::CommandName, "command_name", "z-preregister-telemetry"},
         {StringMetric::DeploymentKind, "deployment_kind", "Git"},
         {StringMetric::DetectedCiEnvironment, "detected_ci_environment", "Generic"},
+        {StringMetric::ExportedPort,
+         "exported_port",
+         "0000000011111111aaaaaaaabbbbbbbbccccccccddddddddeeeeeeeeffffffff"},
+        {StringMetric::ExportedVersion,
+         "exported_version",
+         "0000000011111111aaaaaaaabbbbbbbbccccccccddddddddeeeeeeeeffffffff"},
         {StringMetric::GithubRepo,
          "github_repo_hash",
          "0000000011111111aaaaaaaabbbbbbbbccccccccddddddddeeeeeeeeffffffff"},
