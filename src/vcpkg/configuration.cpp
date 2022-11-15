@@ -241,6 +241,8 @@ namespace
     Optional<RegistryConfig> RegistryConfigDeserializer::visit_object(Json::Reader& r, const Json::Object& obj) const
     {
         RegistryConfig res;
+        res.json_document_path = r.path();
+
         auto& kind = res.kind.emplace();
         r.required_object_field(type_name(), obj, KIND, kind, RegistryImplementationKindDeserializer::instance);
 
@@ -947,20 +949,24 @@ namespace vcpkg
         {
             if (*k == RegistryConfigDeserializer::KIND_BUILTIN)
             {
-                return make_builtin_registry(paths, config.baseline.value_or_exit(VCPKG_LINE_INFO));
+                return make_builtin_registry(paths,
+                                             config.baseline.value_or_exit(VCPKG_LINE_INFO),
+                                             config.name.value_or(config.json_document_path));
             }
             else if (*k == RegistryConfigDeserializer::KIND_GIT)
             {
                 return make_git_registry(paths,
                                          config.repo.value_or_exit(VCPKG_LINE_INFO),
                                          config.reference.value_or("HEAD"),
-                                         config.baseline.value_or_exit(VCPKG_LINE_INFO));
+                                         config.baseline.value_or_exit(VCPKG_LINE_INFO),
+                                         config.name.value_or(config.json_document_path));
             }
             else if (*k == RegistryConfigDeserializer::KIND_FILESYSTEM)
             {
                 return make_filesystem_registry(paths.get_filesystem(),
                                                 config_dir / config.path.value_or_exit(VCPKG_LINE_INFO),
-                                                config.baseline.value_or(""));
+                                                config.baseline.value_or(""),
+                                                config.name.value_or(config.json_document_path));
             }
             else
             {
