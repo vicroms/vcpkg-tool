@@ -242,22 +242,36 @@ namespace vcpkg
             std::string version_str;
             do
             {
-                ch = parser.next();
-                while (ParserBase::is_alphanumdash(ch) || ch == '.' || ch == '_')
-                {
-                    version_str += ch;
-                    ch = parser.next();
-                }
-                
+                parser.next();
+                // For convenience, special characters in semver and dates do not require escaping.
+                version_str +=
+                    parser
+                        .match_while([](auto ch) {
+                            return ParserBase::is_alphanum(ch) || ch == '.' || ch == '-' || ch == '+' || ch == '_';
+                        })
+                        .to_string();
                 if (parser.cur() == '\\')
                 {
                     parser.next();
+                    if (parser.cur() == '#')
+                    {
+                        parser.add_error("character '#' is not allowed in version strings");
+                        return nullopt;
+                    }
+
                     version_str += parser.cur();
                     continue;
                 }
 
+                if (version_str.empty())
+                {
+                    parser.add_error("expected version");
+                    return nullopt;
+                }
+
                 if (parser.cur() == '#')
                 {
+                    parser.next();
                     auto port_version_str = parser.match_while(ParserBase::is_ascii_digit);
                     if (port_version_str.empty())
                     {
@@ -267,7 +281,8 @@ namespace vcpkg
                     auto maybe_port_version = Strings::strto<int>(port_version_str);
                     if (!maybe_port_version)
                     {
-                        parser.add_error(fmt::format("couldn't parse port-version '{}' (must be a positive integer number)", port_version_str));
+                        parser.add_error(fmt::format(
+                            "couldn't parse port-version '{}' (must be a positive integer number)", port_version_str));
                         return nullopt;
                     }
 
@@ -275,9 +290,10 @@ namespace vcpkg
                     break;
                 }
                 ret.version.emplace(version_str, 0);
-                
+
                 break;
             } while (true);
+            ch = parser.cur();
         }
         if (ch == ':')
         {
