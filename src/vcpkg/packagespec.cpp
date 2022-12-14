@@ -45,6 +45,24 @@ namespace vcpkg
 
     bool InternalFeatureSet::empty_or_only_core() const { return empty() || (size() == 1 && *begin() == "core"); }
 
+    // VersionedPackageSpec {
+    std::string VersionedPackageSpec::to_string() const
+    {
+        std::string ret;
+        to_string(ret);
+        return ret;
+    }
+
+    void VersionedPackageSpec::to_string(std::string& s) const
+    {
+        Strings::append(s, m_name);
+        if (auto v = m_version.get())
+        {
+            Strings::append(s, '@', v->to_string());
+        }
+    }
+    // } VersionedPackageSpec
+
     InternalFeatureSet internalize_feature_list(View<std::string> fs, ImplicitDefault id)
     {
         InternalFeatureSet ret;
@@ -98,6 +116,14 @@ namespace vcpkg
                                                                       bool& default_triplet_used,
                                                                       ImplicitDefault id) const
     {
+        if (version)
+        {
+            return {
+                msg::format_error(msgIllegalVersionSpec).data(),
+                expected_right_tag,
+            };
+        }
+
         if (platform)
         {
             return msg::format_error(msgIllegalPlatformSpec);
@@ -116,6 +142,22 @@ namespace vcpkg
     ExpectedL<PackageSpec> ParsedQualifiedSpecifier::to_package_spec(Triplet default_triplet,
                                                                      bool& default_triplet_used) const
     {
+        if (features)
+        {
+            return {
+                msg::format_error(msgIllegalFeatures).data(),
+                expected_right_tag,
+            };
+        }
+
+        if (version)
+        {
+            return {
+                msg::format_error(msgIllegalVersionSpec).data(),
+                expected_right_tag,
+            };
+        }
+
         if (platform)
         {
             return msg::format_error(msgIllegalPlatformSpec);
