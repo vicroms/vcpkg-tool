@@ -253,7 +253,7 @@ namespace vcpkg
                     {
                         if (!curlinfo_private) Checks::unreachable(VCPKG_LINE_INFO);
                         auto request_write_handle = static_cast<WriteFilePointer*>(curlinfo_private);
-                        auto idx = request_write_handle - write_pointers.data();
+                        idx = request_write_handle - write_pointers.data();
                     }
 
                     long response_code;
